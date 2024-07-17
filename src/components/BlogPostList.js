@@ -10,7 +10,7 @@ const BlogPostList = ({ setPosts }) => {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const response = await axios.get(`https://newsapi.org/v2/everything?q=technology&pageSize=5&page=${page}&apiKey=YOUR_API_KEY`);
+      const response = await axios.get(`https://newsapi.org/v2/everything?q=technology&pageSize=5&page=${page}&apiKey=4876c1e043e948089326fad6030396e1`);
       setPostsState(response.data.articles);
       setPosts(response.data.articles);
       setTotalPages(Math.ceil(response.data.totalResults / 5));
