@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Container, Pagination } from '@mui/material';
+import { Container, Pagination, Typography } from '@mui/material';
 import BlogPostItem from './BlogPostItem';
 
 const BlogPostList = ({ setPosts }) => {
@@ -21,6 +21,9 @@ const BlogPostList = ({ setPosts }) => {
 
   return (
     <Container>
+      <Typography variant="h4" component="h2" gutterBottom>
+        News/Events of the Week
+      </Typography>
       {posts.map((post, index) => (
         <BlogPostItem key={index} post={post} index={index} />
       ))}
