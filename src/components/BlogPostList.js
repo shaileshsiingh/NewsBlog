@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Container, Pagination, Typography } from '@mui/material';
 import BlogPostItem from './BlogPostItem';
 
@@ -10,41 +11,10 @@ const BlogPostList = ({ setPosts }) => {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const searchQuery = 'technology';
-      const URL = `https://newsapi.org/v2/everything?q=${searchQuery}&sortBy=popularity&pageSize=5&page=${page}`;
-      
-      const fetchParams = {
-        headers: {
-          Authorization: '3e8fcdeadac74b35b8e9ef95298042b7'
-        }
-      };
-
-      try {
-        const response = await fetch(URL, fetchParams);
-        
-        if (response.status === 426) {
-          // Retry with Upgrade header
-          const upgradeResponse = await fetch(URL, {
-            ...fetchParams,
-            headers: {
-              ...fetchParams.headers,
-              'Upgrade': 'h2c'
-            }
-          });
-          
-          const data = await upgradeResponse.json();
-          setPostsState(data.articles);
-          setPosts(data.articles);
-          setTotalPages(Math.ceil(data.totalResults / 5));
-        } else {
-          const data = await response.json();
-          setPostsState(data.articles);
-          setPosts(data.articles);
-          setTotalPages(Math.ceil(data.totalResults / 5));
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+      const response = await axios.get(`https://newsapi.org/v2/everything?q=technology&pageSize=5&page=${page}&apiKey=4876c1e043e948089326fad6030396e1`);
+      setPostsState(response.data.articles);
+      setPosts(response.data.articles);
+      setTotalPages(maxPages);
     };
 
     fetchPosts();
@@ -58,12 +28,7 @@ const BlogPostList = ({ setPosts }) => {
       {posts.map((post, index) => (
         <BlogPostItem key={index} post={post} index={index} />
       ))}
-      <Pagination 
-        count={totalPages > maxPages ? maxPages : totalPages} 
-        page={page} 
-        onChange={(event, value) => setPage(value)} 
-        sx={{ marginTop: 2 }}
-      />
+      <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
     </Container>
   );
 };
