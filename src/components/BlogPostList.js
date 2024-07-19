@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Container, Pagination, Typography } from '@mui/material';
 import BlogPostItem from './BlogPostItem';
 
@@ -11,46 +10,40 @@ const BlogPostList = ({ setPosts }) => {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      try {
-        const response = await axios.get('https://newsapi.org/v2/everything', {
-          params: {
-            q: 'technology',
-            pageSize: 5,
-            page: page,
-            apiKey: '4876c1e043e948089326fad6030396e1'
-          },
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        setPostsState(response.data.articles);
-        setPosts(response.data.articles);
-        setTotalPages(Math.ceil(response.data.totalResults / 5));
-      } catch (error) {
-        if (error.response && error.response.status === 426) {
-          // Retry the request with the upgrade header
-          try {
-            const upgradedResponse = await axios.get('https://newsapi.org/v2/everything', {
-              params: {
-                q: 'technology',
-                pageSize: 5,
-                page: page,
-                apiKey: '4876c1e043e948089326fad6030396e1'
-              },
-              headers: {
-                'Content-Type': 'application/json',
-                'Upgrade': 'h2c'
-              }
-            });
-            setPostsState(upgradedResponse.data.articles);
-            setPosts(upgradedResponse.data.articles);
-            setTotalPages(Math.ceil(upgradedResponse.data.totalResults / 5));
-          } catch (upgradeError) {
-            console.error('Error fetching data with upgrade:', upgradeError);
-          }
-        } else {
-          console.error('Error fetching data:', error);
+      const searchQuery = 'technology';
+      const URL = `https://newsapi.org/v2/everything?q=${searchQuery}&sortBy=popularity&pageSize=5&page=${page}`;
+      
+      const fetchParams = {
+        headers: {
+          Authorization: '3e8fcdeadac74b35b8e9ef95298042b7'
         }
+      };
+
+      try {
+        const response = await fetch(URL, fetchParams);
+        
+        if (response.status === 426) {
+          // Retry with Upgrade header
+          const upgradeResponse = await fetch(URL, {
+            ...fetchParams,
+            headers: {
+              ...fetchParams.headers,
+              'Upgrade': 'h2c'
+            }
+          });
+          
+          const data = await upgradeResponse.json();
+          setPostsState(data.articles);
+          setPosts(data.articles);
+          setTotalPages(Math.ceil(data.totalResults / 5));
+        } else {
+          const data = await response.json();
+          setPostsState(data.articles);
+          setPosts(data.articles);
+          setTotalPages(Math.ceil(data.totalResults / 5));
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
       }
     };
 
