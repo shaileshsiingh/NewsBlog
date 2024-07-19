@@ -11,10 +11,47 @@ const BlogPostList = ({ setPosts }) => {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const response = await axios.get(`https://newsapi.org/v2/everything?q=technology&pageSize=5&page=${page}&apiKey=4876c1e043e948089326fad6030396e1`);
-      setPostsState(response.data.articles);
-      setPosts(response.data.articles);
-      setTotalPages(maxPages);
+      try {
+        const response = await axios.get('https://newsapi.org/v2/everything', {
+          params: {
+            q: 'technology',
+            pageSize: 5,
+            page: page,
+            apiKey: '4876c1e043e948089326fad6030396e1'
+          },
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        setPostsState(response.data.articles);
+        setPosts(response.data.articles);
+        setTotalPages(Math.ceil(response.data.totalResults / 5));
+      } catch (error) {
+        if (error.response && error.response.status === 426) {
+          // Retry the request with the upgrade header
+          try {
+            const upgradedResponse = await axios.get('https://newsapi.org/v2/everything', {
+              params: {
+                q: 'technology',
+                pageSize: 5,
+                page: page,
+                apiKey: '4876c1e043e948089326fad6030396e1'
+              },
+              headers: {
+                'Content-Type': 'application/json',
+                'Upgrade': 'h2c'
+              }
+            });
+            setPostsState(upgradedResponse.data.articles);
+            setPosts(upgradedResponse.data.articles);
+            setTotalPages(Math.ceil(upgradedResponse.data.totalResults / 5));
+          } catch (upgradeError) {
+            console.error('Error fetching data with upgrade:', upgradeError);
+          }
+        } else {
+          console.error('Error fetching data:', error);
+        }
+      }
     };
 
     fetchPosts();
@@ -28,7 +65,12 @@ const BlogPostList = ({ setPosts }) => {
       {posts.map((post, index) => (
         <BlogPostItem key={index} post={post} index={index} />
       ))}
-      <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
+      <Pagination 
+        count={totalPages > maxPages ? maxPages : totalPages} 
+        page={page} 
+        onChange={(event, value) => setPage(value)} 
+        sx={{ marginTop: 2 }}
+      />
     </Container>
   );
 };
